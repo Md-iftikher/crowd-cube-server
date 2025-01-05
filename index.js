@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 
 const port = process.env.PORT || 5000;
@@ -29,7 +29,7 @@ async function run() {
     const campaignCollection = database.collection("campain");
 
     //cration api for adding campian
-    app.post("/campaigns", async (req, res) => {
+    app.post("/Addcampaigns", async (req, res) => {
       const {
         title,
         type,
@@ -52,15 +52,12 @@ async function run() {
         thumbnail,
         createdAt: new Date(),
       };
+      console.log(newCampaign);
+      
 
       try {
         const result = await campaignCollection.insertOne(newCampaign);
-        res
-          .status(201)
-          .json({
-            message: "Campaign added successfully",
-            id: result.insertedId,
-          });
+        res.send(result);
       } catch (error) {
         res
           .status(500)
@@ -68,12 +65,27 @@ async function run() {
       }
     });
 
-    // Get All Campaigns
+    // Getiing  All Campaigns
     app.get("/campaigns", async (req, res) => {
       try {
         const cursor = campaignCollection.find();
         const result = await cursor.toArray();
         res.json(result);
+      } catch (error) {
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+    app.get("/campaigns/:id", async (req, res) => {
+      try {
+        const id=req.params.id;
+        console.log(id);
+        
+        const query = { _id: new ObjectId(id) };
+        console.log(query);
+        
+        const result = await campaignCollection.findOne(query);
+        console.log(result);
+        res.send(result);
       } catch (error) {
         res.status(500).json({ message: "Server error" });
       }
