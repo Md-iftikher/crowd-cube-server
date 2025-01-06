@@ -27,6 +27,7 @@ async function run() {
 
     const database = client.db("CrowdDb");
     const campaignCollection = database.collection("campain");
+    const donationCollection = database.collection("DonationCollection");
 
     //cration api for adding campian
     app.post("/Addcampaigns", async (req, res) => {
@@ -40,7 +41,7 @@ async function run() {
         userName,
         thumbnail,
       } = req.body;
-      
+
       const newCampaign = {
         title,
         type,
@@ -53,7 +54,6 @@ async function run() {
         createdAt: new Date(),
       };
       console.log(newCampaign);
-      
 
       try {
         const result = await campaignCollection.insertOne(newCampaign);
@@ -77,18 +77,53 @@ async function run() {
     });
     app.get("/campaigns/:id", async (req, res) => {
       try {
-        const id=req.params.id;
+        const id = req.params.id;
         console.log(id);
-        
+
         const query = { _id: new ObjectId(id) };
         console.log(query);
-        
+
         const result = await campaignCollection.findOne(query);
         console.log(result);
         res.send(result);
       } catch (error) {
         res.status(500).json({ message: "Server error" });
       }
+    });
+
+    // Fetch campaigns by email
+    app.get("/campaigns/email/:email", async (req, res) => {
+      try {
+        const email = req.params.email;
+        console.log("Email:", email);
+
+        const query = { userEmail: email };
+        console.log("Query:", query);
+
+        const results = await campaignCollection.find(query).toArray();
+        res.send(results);
+      } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
+
+
+    app.delete("/campaigns/:id",async(req,res)=>{
+      const id=req.params.id;
+      const query={_id:new ObjectId(id)};
+      const result=await campaignCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    //donation part
+
+    app.post("/donations", async (req, res) => {
+      const newDonation = req.body;
+      console.log(newDonation);
+
+      const result = await donationCollection.insertOne(newDonation);
+      res.send(result);
     });
 
     // Send a ping to confirm a successful connection
