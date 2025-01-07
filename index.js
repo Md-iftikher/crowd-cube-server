@@ -75,6 +75,7 @@ async function run() {
         res.status(500).json({ message: "Server error" });
       }
     });
+
     app.get("/campaigns/:id", async (req, res) => {
       try {
         const id = req.params.id;
@@ -90,16 +91,29 @@ async function run() {
         res.status(500).json({ message: "Server error" });
       }
     });
-
+    
+  
+    app.put("/campaigns/:id", async (req, res) => {
+      try {
+        const id = req.params.id;
+    
+        const filter = { _id: new ObjectId(id) }; 
+        const updatedDoc = {
+          $set: req.body 
+        };
+       
+        const result = await campaignCollection.updateOne(filter, updatedDoc);
+        res.send(result);
+      } catch (error) {
+        console.error("Error updating campaign:", error);
+        res.status(500).json({ message: "Server error" });
+      }
+    });
     // Fetch campaigns by email
     app.get("/campaigns/email/:email", async (req, res) => {
       try {
         const email = req.params.email;
-        console.log("Email:", email);
-
         const query = { userEmail: email };
-        console.log("Query:", query);
-
         const results = await campaignCollection.find(query).toArray();
         res.send(results);
       } catch (error) {
@@ -108,21 +122,28 @@ async function run() {
       }
     });
 
-
-    app.delete("/campaigns/:id",async(req,res)=>{
-      const id=req.params.id;
-      const query={_id:new ObjectId(id)};
-      const result=await campaignCollection.deleteOne(query);
+    app.delete("/campaigns/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await campaignCollection.deleteOne(query);
       res.send(result);
-    })
+    });
 
     //donation part
 
     app.post("/donations", async (req, res) => {
       const newDonation = req.body;
-      console.log(newDonation);
-
+      // console.log(newDonation);
+      newDonation.donationDate = new Date();
       const result = await donationCollection.insertOne(newDonation);
+      res.send(result);
+    });
+
+    app.get("/donations/:email", async (req, res) => {
+      const email = req.params.email;
+      const query = { userEmail: email };
+      const result = await donationCollection.find(query).toArray();
+      
       res.send(result);
     });
 
